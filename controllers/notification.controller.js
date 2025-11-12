@@ -26,3 +26,29 @@ export const sendWelcomeEmail = async (req, res) => {
     return res.status(500).json({ msg: "Internal server error", error: error.message });
   }
 };
+export const sendBookingRequestNotification = async (req, res) => {
+  try {
+    const { ownerEmail, ownerName, itemTitle, renterName, startDate, endDate } = req.body;
+
+    if (!ownerEmail || !ownerName || !itemTitle || !renterName || !startDate || !endDate) {
+      return res.status(400).json({ msg: "Tous les champs sont obligatoires" });
+    }
+
+    const template = emailTemplates.bookingRequest(ownerName, itemTitle, renterName, startDate, endDate);
+    const result = await sendEmail({
+      to: ownerEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (result.success) {
+      return res.status(200).json({ msg: "Booking request email sent successfully", messageId: result.messageId });
+    } else {
+      return res.status(500).json({ msg: "Failed to send booking request email", error: result.error });
+    }
+  } catch (error) {
+    console.error("Send booking request email error:", error);
+    return res.status(500).json({ msg: "Internal server error", error: error.message });
+  }
+};
