@@ -87,3 +87,70 @@ export const sendBookingConfirmedNotification = async (req, res) => {
     });
   }
 };
+
+export const sendBookingRejectedNotification = async (req, res) => {
+  try {
+    const { renterEmail, renterName, itemTitle, reason } = req.body;
+
+    if (!renterEmail || !renterName || !itemTitle) {
+      return res.status(400).json({ msg: "Missing required fields" });
+    }
+
+    const template = emailTemplates.bookingRejected(renterName, itemTitle, reason);
+
+    const result = await sendEmail({
+      to: renterEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (result.success) {
+      return res.status(200).json({ 
+        messageId: result.messageId,
+        msg: "Booking rejected notification sent successfully"
+      });
+    } else {
+      return res.status(500).json({ 
+        msg: "Failed to send notification",
+        error: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error("Send booking rejected notification error:", error);
+    return res.status(500).json({
+      msg: "Server error while sending notification",
+      error: error.message
+    });
+  }
+};
+
+export const sendBookingCancelledNotification = async (req, res) => {
+  try {
+    const { email, userName, itemTitle, cancelledBy } = req.body;
+
+    if (!email || !userName || !itemTitle || !cancelledBy) {
+      return res.status(400).json({ msg: "Missing required fields" });
+    }
+
+    const template = emailTemplates.bookingCancelled(userName, itemTitle, cancelledBy);
+
+    const result = await sendEmail({
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (result.success) {
+      return res.status(200).json({ msg: "Booking cancelled notification sent", messageId: result.messageId });
+    } else {
+      return res.status(500).json({ msg: "Failed to send notification", error: result.error });
+    }
+
+  } catch (error) {
+    console.error("Send booking cancelled notification error:", error);
+    return res.status(500).json({ msg: "Server error while sending notification", error: error.message });
+  }
+};
