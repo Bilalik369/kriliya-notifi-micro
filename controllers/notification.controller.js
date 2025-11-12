@@ -52,3 +52,38 @@ export const sendBookingRequestNotification = async (req, res) => {
     return res.status(500).json({ msg: "Internal server error", error: error.message });
   }
 };
+
+export const sendBookingConfirmedNotification = async (req, res) => {
+  try {
+    const { renterEmail, renterName, itemTitle, startDate, endDate } = req.body;
+
+    if (!renterEmail || !renterName || !itemTitle || !startDate || !endDate) {
+      return res.status(400).json({ msg: "Missing required fields" });
+    }
+
+    const template = emailTemplates.bookingConfirmed(renterName, itemTitle, startDate, endDate);
+
+    const result = await sendEmail({
+      to: renterEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (result.success) {
+      return res.status(200).json({ 
+        messageId: result.messageId, 
+        msg: "Booking confirmed notification sent successfully" 
+      });
+    } else {
+      return res.status(500).json({ msg: "Failed to send notification", error: result.error });
+    }
+
+  } catch (error) {
+    console.error("Send booking confirmed notification error:", error);
+    return res.status(500).json({ 
+      msg: "Server error while sending notification", 
+      error: error.message 
+    });
+  }
+};
