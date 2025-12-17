@@ -154,3 +154,4 @@ export const sendBookingCancelledNotification = async (req, res) => {
     return res.status(500).json({ msg: "Server error while sending notification", error: error.message });
   }
 };
+
