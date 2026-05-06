@@ -1,11 +1,13 @@
 import nodemailer from "nodemailer";
 
-
+/* =========================
+   TRANSPORTER
+========================= */
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
-    secure: false, 
+    secure: false,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -13,6 +15,64 @@ const createTransporter = () => {
   });
 };
 
+/* =========================
+   EMAIL LAYOUT (GLOBAL DESIGN)
+========================= */
+const emailLayout = (title, content) => `
+  <div style="
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    padding: 20px;
+  ">
+    <div style="
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    ">
+
+      <!-- HEADER -->
+      <div style="
+        background: #F86261;
+        color: white;
+        padding: 22px;
+        text-align: center;
+      ">
+        <h1 style="margin: 0; font-size: 22px;">
+          ${title}
+        </h1>
+      </div>
+
+      <!-- CONTENT -->
+      <div style="
+        padding: 25px;
+        color: #333;
+        line-height: 1.6;
+        font-size: 15px;
+      ">
+        ${content}
+      </div>
+
+      <!-- FOOTER -->
+      <div style="
+        text-align: center;
+        padding: 15px;
+        font-size: 12px;
+        color: #888;
+        border-top: 1px solid #eee;
+      ">
+        © ${new Date().getFullYear()} Kri Liya. All rights reserved.
+      </div>
+
+    </div>
+  </div>
+`;
+
+/* =========================
+   SEND EMAIL FUNCTION
+========================= */
 export const sendEmail = async ({ to, subject, html, text }) => {
   try {
     const transporter = createTransporter();
@@ -26,141 +86,217 @@ export const sendEmail = async ({ to, subject, html, text }) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(" Email sent:", info.messageId);
+
+    console.log("Email sent:", info.messageId);
+
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error(" Email sending error:", error);
+    console.error("Email error:", error);
+
     return { success: false, error: error.message };
   }
 };
 
-
+/* =========================
+   EMAIL TEMPLATES
+========================= */
 export const emailTemplates = {
+
+  /* -------- WELCOME -------- */
   welcome: (userName) => ({
     subject: "Welcome to Kri Liya!",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">Welcome to Kri Liya, ${userName}!</h1>
-        <p>Thank you for joining our rental marketplace community.</p>
-        <p>You can now start renting items or listing your own items for rent.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Welcome to Kri Liya, ${userName}! Thank you for joining our rental marketplace community.`,
+    html: emailLayout(
+      "Welcome 🎉",
+      `
+        <p>Hi <strong>${userName}</strong>,</p>
+
+        <p>
+          Welcome to <strong style="color:#F86261;">Kri Liya</strong> 👋
+        </p>
+
+        <p>
+          You can now rent items or list your own products easily on our platform.
+        </p>
+
+        <div style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #fff3f1;
+          border-left: 4px solid #F86261;
+          border-radius: 8px;
+        ">
+          Start exploring and enjoy your experience 🚀
+        </div>
+
+        <p style="margin-top: 20px;">
+          Best regards,<br/>
+          <strong style="color:#F86261;">Kri Liya Team</strong>
+        </p>
+      `
+    ),
+    text: `Welcome ${userName} to Kri Liya!`,
   }),
 
+/* -------- BOOKING REQUEST -------- */
   bookingRequest: (ownerName, itemTitle, renterName, startDate, endDate) => ({
     subject: "New Booking Request",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">New Booking Request</h1>
-        <p>Hi ${ownerName},</p>
-        <p>${renterName} has requested to rent your item: <strong>${itemTitle}</strong></p>
-        <p><strong>Rental Period:</strong> ${startDate} to ${endDate}</p>
-        <p>Please review and respond to this booking request.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${ownerName}, ${renterName} requested to rent ${itemTitle} from ${startDate} to ${endDate}.`,
+    html: emailLayout(
+      "New Booking Request 📦",
+      `
+        <p>Hi <strong>${ownerName}</strong>,</p>
+
+        <p>
+          <strong>${renterName}</strong> wants to rent:
+          <strong style="color:#F86261;">${itemTitle}</strong>
+        </p>
+
+        <div style="
+          margin: 15px 0;
+          padding: 12px;
+          background: #fff3f1;
+          border-radius: 10px;
+        ">
+          <p><strong>Start:</strong> ${startDate}</p>
+          <p><strong>End:</strong> ${endDate}</p>
+        </div>
+
+        <p>Please review this request from your dashboard.</p>
+
+        <p style="margin-top: 20px;">
+          Best regards,<br/>
+          <strong style="color:#F86261;">Kri Liya Team</strong>
+        </p>
+      `
+    ),
+    text: `Booking request for ${itemTitle}`,
   }),
 
+/* -------- BOOKING CONFIRMED -------- */
   bookingConfirmed: (renterName, itemTitle, startDate, endDate) => ({
     subject: "Booking Confirmed",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #4CAF50;">Booking Confirmed!</h1>
-        <p>Hi ${renterName},</p>
-        <p>Your booking for <strong>${itemTitle}</strong> is confirmed!</p>
-        <p><strong>Rental Period:</strong> ${startDate} to ${endDate}</p>
-        <p>Please coordinate with the owner for pickup details.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${renterName}, Your booking for ${itemTitle} is confirmed.`,
+    html: emailLayout(
+      "Booking Confirmed ✅",
+      `
+        <p>Hi <strong>${renterName}</strong>,</p>
+
+        <p>
+          Your booking for
+          <strong style="color:#F86261;">${itemTitle}</strong>
+          is confirmed.
+        </p>
+
+        <div style="
+          margin: 15px 0;
+          padding: 12px;
+          background: #eaffea;
+          border-left: 4px solid #4CAF50;
+          border-radius: 10px;
+        ">
+          <p><strong>Start:</strong> ${startDate}</p>
+          <p><strong>End:</strong> ${endDate}</p>
+        </div>
+
+        <p>Please coordinate with the owner.</p>
+      `
+    ),
+    text: `Booking confirmed for ${itemTitle}`,
   }),
 
+/* -------- BOOKING REJECTED -------- */
   bookingRejected: (renterName, itemTitle, reason) => ({
-    subject: "Booking Request Declined",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #f44336;">Booking Request Declined</h1>
-        <p>Hi ${renterName},</p>
-        <p>Unfortunately, your booking request for <strong>${itemTitle}</strong> has been declined.</p>
-        ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
-        <p>Please browse other available items on our platform.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${renterName}, Your booking request for ${itemTitle} has been declined.`,
+    subject: "Booking Declined",
+    html: emailLayout(
+      "Booking Declined ❌",
+      `
+        <p>Hi <strong>${renterName}</strong>,</p>
+
+        <p>
+          Your request for <strong>${itemTitle}</strong> was declined.
+        </p>
+
+        ${
+          reason
+            ? `<p><strong>Reason:</strong> ${reason}</p>`
+            : ""
+        }
+
+        <p>You can explore other items on the platform.</p>
+      `
+    ),
+    text: `Booking declined for ${itemTitle}`,
   }),
 
-  bookingCancelled: (userName, itemTitle, cancelledBy) => ({
-    subject: "Booking Cancelled",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #ff9800;">Booking Cancelled</h1>
-        <p>Hi ${userName},</p>
-        <p>The booking for <strong>${itemTitle}</strong> has been cancelled by ${cancelledBy}.</p>
-        <p>If you have any questions, please contact support.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${userName}, The booking for ${itemTitle} has been cancelled.`,
-  }),
-
+/* -------- PAYMENT -------- */
   paymentReceived: (userName, itemTitle, amount) => ({
     subject: "Payment Received",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #4CAF50;">Payment Received</h1>
-        <p>Hi ${userName},</p>
-        <p>We have received your payment of <strong>${amount}</strong> for <strong>${itemTitle}</strong>.</p>
-        <p>Your booking is now confirmed.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${userName}, We have received your payment of ${amount} for ${itemTitle}.`,
+    html: emailLayout(
+      "Payment Received 💰",
+      `
+        <p>Hi <strong>${userName}</strong>,</p>
+
+        <p>
+          We received your payment of
+          <strong style="color:#F86261;">${amount}</strong>
+          for <strong>${itemTitle}</strong>.
+        </p>
+
+        <p>Your booking is now active.</p>
+      `
+    ),
+    text: `Payment received for ${itemTitle}`,
   }),
 
+/* -------- REVIEW -------- */
   reviewReceived: (userName, reviewerName, rating, itemTitle) => ({
-    subject: "New Review Received",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">New Review Received</h1>
-        <p>Hi ${userName},</p>
-        <p>${reviewerName} has left a ${rating}-star review for <strong>${itemTitle}</strong>.</p>
-        <p>Check your dashboard to view the review and respond.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${userName}, ${reviewerName} has left a ${rating}-star review for ${itemTitle}.`,
+    subject: "New Review",
+    html: emailLayout(
+      "New Review ⭐",
+      `
+        <p>Hi <strong>${userName}</strong>,</p>
+
+        <p>
+          ${reviewerName} left a
+          <strong style="color:#F86261;">${rating}-star</strong>
+          review for <strong>${itemTitle}</strong>.
+        </p>
+      `
+    ),
+    text: `New review received`,
   }),
 
+/* -------- REMINDER -------- */
   reminderCheckIn: (ownerName, itemTitle, renterName, date) => ({
-    subject: "Reminder: Check-in Today",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #2196F3;">Reminder: Check-in Today</h1>
-        <p>Hi ${ownerName},</p>
-        <p>This is a reminder that ${renterName} is scheduled to pick up <strong>${itemTitle}</strong> today (${date}).</p>
-        <p>Please ensure the item is ready for pickup.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${ownerName}, Reminder: ${renterName} is scheduled to pick up ${itemTitle} today.`,
+    subject: "Check-in Reminder",
+    html: emailLayout(
+      "Check-in Today 📦",
+      `
+        <p>Hi <strong>${ownerName}</strong>,</p>
+
+        <p>
+          ${renterName} will pick up
+          <strong style="color:#F86261;">${itemTitle}</strong>
+          today (${date}).
+        </p>
+      `
+    ),
+    text: `Check-in reminder`,
   }),
 
+/* -------- CHECK OUT -------- */
   reminderCheckOut: (ownerName, itemTitle, renterName, date) => ({
-    subject: "Reminder: Check-out Today",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #2196F3;">Reminder: Check-out Today</h1>
-        <p>Hi ${ownerName},</p>
-        <p>This is a reminder that ${renterName} is scheduled to return <strong>${itemTitle}</strong> today (${date}).</p>
-        <p>Please inspect the item upon return.</p>
-        <p>Best regards,<br>The Kri Liya Team</p>
-      </div>
-    `,
-    text: `Hi ${ownerName}, Reminder: ${renterName} is scheduled to return ${itemTitle} today.`,
+    subject: "Check-out Reminder",
+    html: emailLayout(
+      "Return Today 📦",
+      `
+        <p>Hi <strong>${ownerName}</strong>,</p>
+
+        <p>
+          ${renterName} will return
+          <strong style="color:#F86261;">${itemTitle}</strong>
+          today (${date}).
+        </p>
+      `
+    ),
+    text: `Check-out reminder`,
   }),
 };
