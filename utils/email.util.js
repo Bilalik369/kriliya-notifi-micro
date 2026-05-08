@@ -137,6 +137,36 @@ export const emailTemplates = {
     text: `Welcome ${userName} to Kri Liya!`,
   }),
 
+  /* -------- ADMIN ITEM PENDING -------- */
+  itemPendingApproval: (itemTitle, itemId, ownerEmail, ownerName) => ({
+    subject: `New item to review — ${ownerName}`,
+    html: emailLayout(
+      "New listing needs your decision 🛡️",
+      `
+        <p>Hello Admin,</p>
+        <p>
+          <strong>${ownerName}</strong> has listed a new item. It is <strong>not visible</strong> to other users until you approve it.
+        </p>
+        <div style="
+          margin-top: 12px;
+          padding: 14px;
+          background: #fff3f1;
+          border-left: 4px solid #F86261;
+          border-radius: 8px;
+        ">
+          <p><strong>Item:</strong> ${itemTitle}</p>
+          <p><strong>Listed by:</strong> ${ownerName}</p>
+          <p><strong>Email:</strong> ${ownerEmail}</p>
+          <p><strong>Item ID:</strong> ${itemId}</p>
+        </div>
+        <p style="margin-top: 18px;">
+          Open the <strong>Admin</strong> section in the app, review the item, then choose <strong>Approve</strong> or <strong>Reject</strong>.
+        </p>
+      `
+    ),
+    text: `${ownerName} listed "${itemTitle}" (ID: ${itemId}, ${ownerEmail}). Approve or reject in the Admin panel — not public until approved.`,
+  }),
+
 /* -------- BOOKING REQUEST -------- */
   bookingRequest: (ownerName, itemTitle, renterName, startDate, endDate) => ({
     subject: "New Booking Request",
