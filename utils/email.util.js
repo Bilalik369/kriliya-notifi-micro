@@ -167,6 +167,42 @@ export const emailTemplates = {
     text: `${ownerName} listed "${itemTitle}" (ID: ${itemId}, ${ownerEmail}). Approve or reject in the Admin panel — not public until approved.`,
   }),
 
+  itemApproved: (itemTitle) => ({
+    subject: `Your listing was approved — ${itemTitle}`,
+    html: emailLayout(
+      "Listing approved ✅",
+      `
+        <p>Good news,</p>
+        <p>
+          Your item <strong style="color:#F86261;">${itemTitle}</strong> has been <strong>approved</strong> by an administrator.
+        </p>
+        <p>It is now visible to other users on the platform.</p>
+        <p style="margin-top: 18px;">Thank you for using <strong style="color:#F86261;">Kri Liya</strong>.</p>
+      `,
+    ),
+    text: `Your listing "${itemTitle}" was approved and is now visible to other users.`,
+  }),
+
+  itemRejected: (itemTitle, rejectionReason) => ({
+    subject: `Your listing was not approved — ${itemTitle}`,
+    html: emailLayout(
+      "Listing not approved",
+      `
+        <p>Hello,</p>
+        <p>
+          Your item <strong style="color:#F86261;">${itemTitle}</strong> was <strong>not approved</strong> by an administrator.
+        </p>
+        ${
+          rejectionReason
+            ? `<p><strong>Reason:</strong> ${rejectionReason}</p>`
+            : ""
+        }
+        <p style="margin-top: 14px;">You can edit your listing and submit it again for review if allowed by the platform rules.</p>
+      `,
+    ),
+    text: `Your listing "${itemTitle}" was not approved.${rejectionReason ? ` Reason: ${rejectionReason}` : ""}`,
+  }),
+
 /* -------- BOOKING REQUEST -------- */
   bookingRequest: (ownerName, itemTitle, renterName, startDate, endDate) => ({
     subject: "New Booking Request",

@@ -58,6 +58,48 @@ export const sendItemPendingApprovalNotification = async (req, res) => {
     return res.status(500).json({ msg: "Internal server error", error: error.message });
   }
 };
+
+export const sendItemApprovedToOwner = async (req, res) => {
+  try {
+    const { ownerEmail, itemTitle } = req.body;
+    if (!ownerEmail || !itemTitle) {
+      return res.status(400).json({ msg: "ownerEmail and itemTitle are required" });
+    }
+    const template = emailTemplates.itemApproved(itemTitle);
+    const result = await sendEmail({
+      to: ownerEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+    if (result.success) return res.status(200).json({ msg: "Approval email sent" });
+    return res.status(500).json({ msg: "Failed to send email", error: result.error });
+  } catch (error) {
+    console.error("sendItemApprovedToOwner:", error);
+    return res.status(500).json({ msg: "Internal server error", error: error.message });
+  }
+};
+
+export const sendItemRejectedToOwner = async (req, res) => {
+  try {
+    const { ownerEmail, itemTitle, rejectionReason } = req.body;
+    if (!ownerEmail || !itemTitle) {
+      return res.status(400).json({ msg: "ownerEmail and itemTitle are required" });
+    }
+    const template = emailTemplates.itemRejected(itemTitle, rejectionReason || "");
+    const result = await sendEmail({
+      to: ownerEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+    if (result.success) return res.status(200).json({ msg: "Rejection email sent" });
+    return res.status(500).json({ msg: "Failed to send email", error: result.error });
+  } catch (error) {
+    console.error("sendItemRejectedToOwner:", error);
+    return res.status(500).json({ msg: "Internal server error", error: error.message });
+  }
+};
 export const sendBookingRequestNotification = async (req, res) => {
   try {
     const { ownerEmail, ownerName, itemTitle, renterName, startDate, endDate } = req.body;
